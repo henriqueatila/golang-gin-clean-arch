@@ -9,9 +9,7 @@ metadata:
 
 # gin-clean-arch — Clean Architecture for Go/Gin
 
-Build Go/Gin APIs with strict layer separation, dependency injection, and testable structure. This skill covers the 80% of clean architecture patterns you need daily.
-
-Works standalone. Enhanced with **gin-best-practices** skills for Gin-specific patterns.
+Build Go/Gin APIs with strict layer separation, dependency injection, and testable structure. Covers the 80% of clean architecture patterns you need daily. Works standalone; enhanced with **gin-best-practices** for Gin-specific patterns.
 
 ## When to Use
 
@@ -20,7 +18,6 @@ Works standalone. Enhanced with **gin-best-practices** skills for Gin-specific p
 - Setting up dependency injection without frameworks
 - Making code testable with mock interfaces
 - Separating business logic from framework code
-- Implementing the repository pattern for data access
 
 ## 5 Golden Rules
 
@@ -491,10 +488,12 @@ Load these when you need deeper detail:
 - **[references/testing-by-layer.md](references/testing-by-layer.md)** — Mock-per-layer testing, testcontainers, table-driven tests, coverage goals
 - **[references/project-scaffolding.md](references/project-scaffolding.md)** — From-scratch setup, Makefile, configuration, graceful shutdown
 
-## Cross-Skill References
+## Cross-Skill References (gin-best-practices)
 
-- For Gin routing, middleware, and request binding details: see the **gin-api** skill
-- For JWT authentication and RBAC: see the **gin-auth** skill
-- For GORM/sqlx database patterns: see the **gin-database** skill
-- For testing Gin handlers with httptest: see the **gin-testing** skill
-- For Docker and Kubernetes deployment: see the **gin-deploy** skill
+Each skill from `henriqueatila/gin-best-practices` complements a specific layer:
+
+- **gin-api** → Delivery layer. `ShouldBind*` variants (query, header, form), custom validators, file uploads, route versioning, CORS/rate-limit middleware, `AppError` system. Load `references/routing.md` for pagination and wildcard routes, `references/middleware.md` for request ID and timeout middleware.
+- **gin-auth** → Delivery layer. JWT middleware for protected route groups, login handler, token refresh/blacklist (Redis), RBAC with `RequireRole`. Load `references/jwt-patterns.md` for RS256 vs HS256, `references/rbac.md` for multi-tenant permissions.
+- **gin-database** → Repository layer. GORM associations, hooks, soft deletes, sqlx struct scanning, `NamedExec`, migrations with golang-migrate. Load `references/gorm-patterns.md` for GORM CRUD, `references/migrations.md` for zero-downtime migrations.
+- **gin-testing** → All layers. `httptest.NewRecorder` patterns, table-driven handler tests, testcontainers for integration, e2e flows with docker-compose. Load `references/unit-tests.md` for mock generation, `references/e2e.md` for full CI pipeline tests.
+- **gin-deploy** → Infrastructure. Multi-stage Dockerfile (distroless), docker-compose with Air hot-reload, Kubernetes manifests (Deployment, HPA, Ingress), OpenTelemetry tracing. Load `references/dockerfile.md` for layer caching, `references/kubernetes.md` for Helm charts.
