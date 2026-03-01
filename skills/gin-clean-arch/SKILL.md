@@ -13,11 +13,9 @@ Build Go/Gin APIs with strict layer separation, dependency injection, and testab
 
 ## When to Use
 
-- Starting a new Go/Gin project with clean architecture
-- Refactoring a monolithic Gin app into layers
+- Starting or refactoring a Go/Gin project with clean architecture
 - Setting up dependency injection without frameworks
-- Making code testable with mock interfaces
-- Separating business logic from framework code
+- Separating business logic from framework code for testability
 
 ## 5 Golden Rules
 
@@ -69,8 +67,6 @@ myapp/
 │  └─────────────────────────────────┘    │
 └─────────────────────────────────────────┘
 ```
-
-**Dependency Rule:** Dependencies flow inward only. Inner layers never import outer layers.
 
 | Layer | Package | Can Import | Never Imports |
 |-------|---------|------------|---------------|
@@ -311,7 +307,7 @@ func toProductResponse(p *domain.Product) productResponse {
     return productResponse{
         ID: p.ID.String(), Name: p.Name, Description: p.Description,
         PriceCents: p.Price, Stock: p.Stock,
-        CreatedAt: p.CreatedAt.Format(time.RFC3339),
+        CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z"),
     }
 }
 
@@ -433,6 +429,7 @@ package domain
 type AppError struct {
     Code    int
     Message string
+    Detail  string
 }
 
 func (e *AppError) Error() string { return e.Message }
@@ -453,7 +450,9 @@ package http
 func handleError(c *gin.Context, err error, logger *slog.Logger) {
     var appErr *domain.AppError
     if errors.As(err, &appErr) {
-        c.JSON(appErr.Code, gin.H{"error": appErr.Message})
+        resp := gin.H{"error": appErr.Message}
+        if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+        c.JSON(appErr.Code, resp)
         return
     }
     logger.ErrorContext(c.Request.Context(), "unhandled error", "error", err)
@@ -462,6 +461,10 @@ func handleError(c *gin.Context, err error, logger *slog.Logger) {
 ```
 
 For detailed error patterns, see [references/error-handling.md](references/error-handling.md).
+
+## Input Sanitization
+
+Binding tags validate structure but **do not sanitize content**. Sanitize free-text strings (`SanitizeString`) at the delivery boundary after `ShouldBind*` succeeds — before mapping to domain input. SQL parameters (`$1, $2...`) prevent injection. See [references/input-sanitization.md](references/input-sanitization.md).
 
 ## Quick Reference
 
@@ -476,15 +479,14 @@ For detailed error patterns, see [references/error-handling.md](references/error
 
 ## Reference Files
 
-Load these when you need deeper detail:
-
 - **[references/layer-separation.md](references/layer-separation.md)** — Layer responsibilities, dependency rule enforcement
 - **[references/layer-separation-antipatterns.md](references/layer-separation-antipatterns.md)** — Anti-patterns (bad→good), migration guide
 - **[references/dependency-injection.md](references/dependency-injection.md)** — Manual DI, DI container pattern, testing with DI
 - **[references/dependency-injection-alternatives.md](references/dependency-injection-alternatives.md)** — Scaling DI, Wire/Fx alternatives
-- **[references/repository-pattern.md](references/repository-pattern.md)** — SQLC implementation, GORM alternative, transactions, query patterns
-- **[references/error-handling.md](references/error-handling.md)** — Domain errors, propagation rules, HTTP mapping middleware, validation errors
-- **[references/testing-by-layer.md](references/testing-by-layer.md)** — Mock-per-layer testing, testcontainers, table-driven tests, coverage goals
+- **[references/repository-pattern.md](references/repository-pattern.md)** — SQLC, GORM, transactions, query patterns
+- **[references/error-handling.md](references/error-handling.md)** — Domain errors, propagation, HTTP mapping, validation errors
+- **[references/input-sanitization.md](references/input-sanitization.md)** — Sanitize untrusted strings at delivery boundary
+- **[references/testing-by-layer.md](references/testing-by-layer.md)** — Mock-per-layer, testcontainers, table-driven tests, coverage
 - **[references/project-scaffolding.md](references/project-scaffolding.md)** — From-scratch setup, Makefile, configuration, graceful shutdown
 
 ## Cross-Skill References (gin-best-practices)

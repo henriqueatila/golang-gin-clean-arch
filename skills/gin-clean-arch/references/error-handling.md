@@ -26,6 +26,7 @@ package domain
 type AppError struct {
     Code    int
     Message string
+    Detail  string
 }
 
 func (e *AppError) Error() string { return e.Message }
@@ -184,7 +185,9 @@ func ErrorMiddleware(logger *slog.Logger) gin.HandlerFunc {
             } else {
                 logger.WarnContext(c.Request.Context(), "client error", "status", appErr.Code, "error", err, "path", c.Request.URL.Path)
             }
-            c.JSON(appErr.Code, gin.H{"error": appErr.Message})
+            resp := gin.H{"error": appErr.Message}
+            if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+            c.JSON(appErr.Code, resp)
             return
         }
         logger.ErrorContext(c.Request.Context(), "unhandled error", "error", err)

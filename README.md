@@ -2,6 +2,7 @@
 
 Agent Skill for Clean Architecture with Go and the Gin framework.
 
+[![Skills.sh](https://img.shields.io/badge/skills.sh-gin--clean--arch-blue)](https://skills.sh/henriqueatila/gin-clean-arch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -40,6 +41,7 @@ unzip gin-clean-arch.zip -d .claude/skills/gin-clean-arch/
 | **references/dependency-injection-alternatives.md** | Scaling DI, Wire/Fx alternatives |
 | **references/repository-pattern.md** | SQLC, GORM, transactions, query patterns |
 | **references/error-handling.md** | Domain errors, propagation, HTTP mapping |
+| **references/input-sanitization.md** | Sanitize untrusted strings at delivery boundary |
 | **references/testing-by-layer.md** | Mock-per-layer, testcontainers, coverage goals |
 | **references/project-scaffolding.md** | From-scratch setup, Makefile, configuration |
 
@@ -95,6 +97,7 @@ gin-clean-arch/
 │           ├── dependency-injection-alternatives.md
 │           ├── repository-pattern.md
 │           ├── error-handling.md
+│           ├── input-sanitization.md
 │           ├── testing-by-layer.md
 │           └── project-scaffolding.md
 │

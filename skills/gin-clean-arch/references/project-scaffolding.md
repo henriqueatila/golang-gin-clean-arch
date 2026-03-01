@@ -62,6 +62,7 @@ package domain
 type AppError struct {
 	Code    int
 	Message string
+	Detail  string
 }
 
 func (e *AppError) Error() string { return e.Message }
@@ -154,7 +155,9 @@ func NewRouter(productUC domain.ProductUsecase, logger *slog.Logger) *gin.Engine
 func handleError(c *gin.Context, err error, logger *slog.Logger) {
 	var appErr *domain.AppError
 	if errors.As(err, &appErr) {
-		c.JSON(appErr.Code, gin.H{"error": appErr.Message})
+		resp := gin.H{"error": appErr.Message}
+		if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+		c.JSON(appErr.Code, resp)
 		return
 	}
 	logger.ErrorContext(c.Request.Context(), "unhandled error", "error", err)

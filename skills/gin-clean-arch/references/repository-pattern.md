@@ -118,7 +118,7 @@ Separate model with GORM tags; map to/from domain. Never annotate the domain str
 // internal/repository/product_repository_gorm.go
 package repository
 
-import ("context"; "errors"; "fmt"; "time"
+import ("context"; "errors"; "fmt"; "strings"; "time"
     "github.com/google/uuid"; "gorm.io/gorm"; "myapp/internal/domain")
 
 type productModel struct {
@@ -146,13 +146,25 @@ func (r *gormProductRepo) FindByID(ctx context.Context, id uuid.UUID) (*domain.P
     p := fromModel(m); return &p, nil
 }
 func (r *gormProductRepo) Create(ctx context.Context, p *domain.Product) error {
-    m := toModel(p); return r.db.WithContext(ctx).Create(&m).Error
+    m := toModel(p)
+    if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
+        if strings.Contains(err.Error(), "duplicate key") { return fmt.Errorf("product %q: %w", p.Name, domain.ErrConflict) }
+        return fmt.Errorf("insert product: %w", err)
+    }
+    return nil
 }
 func (r *gormProductRepo) Update(ctx context.Context, p *domain.Product) error {
-    m := toModel(p); return r.db.WithContext(ctx).Save(&m).Error
+    m := toModel(p)
+    result := r.db.WithContext(ctx).Save(&m)
+    if result.Error != nil { return fmt.Errorf("update product: %w", result.Error) }
+    if result.RowsAffected == 0 { return fmt.Errorf("product %s: %w", p.ID, domain.ErrNotFound) }
+    return nil
 }
 func (r *gormProductRepo) Delete(ctx context.Context, id uuid.UUID) error {
-    return r.db.WithContext(ctx).Delete(&productModel{}, "id = ?", id).Error
+    result := r.db.WithContext(ctx).Delete(&productModel{}, "id = ?", id)
+    if result.Error != nil { return fmt.Errorf("delete product: %w", result.Error) }
+    if result.RowsAffected == 0 { return fmt.Errorf("product %s: %w", id, domain.ErrNotFound) }
+    return nil
 }
 func (r *gormProductRepo) FindAll(ctx context.Context, f domain.ProductFilter) ([]domain.Product, error) {
     var ms []productModel
