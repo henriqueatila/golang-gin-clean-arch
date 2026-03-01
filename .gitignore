@@ -16,3 +16,7 @@ Thumbs.db
 
 # Plans (local only)
 plans/
+
+# Agent memory/artifacts
+.claude/
+**/.claude/
