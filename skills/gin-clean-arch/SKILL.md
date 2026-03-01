@@ -17,7 +17,7 @@ Build Go/Gin APIs with strict layer separation, dependency injection, and testab
 - Setting up dependency injection without frameworks
 - Separating business logic from framework code for testability
 
-## 5 Golden Rules
+## 6 Golden Rules
 
 **Non-negotiable. Every code generation must follow them.**
 

@@ -4,7 +4,7 @@ Clean Architecture patterns for Go Gin APIs.
 
 ## What's Included
 
-- **SKILL.md** — 5 golden rules, 4-layer overview, DI bootstrap, error flow, project structure
+- **SKILL.md** — 6 golden rules, 4-layer overview, DI bootstrap, error flow, project structure
 - **references/layer-separation.md** — Layer responsibilities, dependency rule enforcement
 - **references/layer-separation-antipatterns.md** — Anti-patterns (bad→good), migration guide
 - **references/dependency-injection.md** — Manual DI, DI container pattern, testing with DI
