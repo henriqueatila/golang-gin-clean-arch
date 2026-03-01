@@ -1,4 +1,4 @@
-# gin-clean-arch
+# golang-gin-clean-arch
 
 Clean Architecture patterns for Go Gin APIs.
 
@@ -21,5 +21,5 @@ Clean Architecture patterns for Go Gin APIs.
 ## Install
 
 ```bash
-npx skills add henriqueatila/gin-clean-arch --skill gin-clean-arch
+npx skills add henriqueatila/golang-gin-clean-arch --skill golang-gin-clean-arch
 ```

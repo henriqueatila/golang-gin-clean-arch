@@ -1,8 +1,8 @@
-# gin-clean-arch
+# golang-gin-clean-arch
 
 Agent Skill for Clean Architecture with Go and the Gin framework.
 
-[![Skills.sh](https://img.shields.io/badge/skills.sh-gin--clean--arch-blue)](https://skills.sh/henriqueatila/gin-clean-arch)
+[![Skills.sh](https://img.shields.io/badge/skills.sh-golang--gin--clean--arch-blue)](https://skills.sh/henriqueatila/golang-gin-clean-arch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -18,14 +18,14 @@ Works standalone. Enhanced with [gin-best-practices](https://github.com/henrique
 ## Install
 
 ```bash
-npx skills add henriqueatila/gin-clean-arch --skill gin-clean-arch
+npx skills add henriqueatila/golang-gin-clean-arch --skill golang-gin-clean-arch
 ```
 
 ### Manual Installation
 
 ```bash
-curl -L https://github.com/henriqueatila/gin-clean-arch/raw/main/skills/gin-clean-arch.zip -o gin-clean-arch.zip
-unzip gin-clean-arch.zip -d .claude/skills/gin-clean-arch/
+curl -L https://github.com/henriqueatila/golang-gin-clean-arch/raw/main/skills/golang-gin-clean-arch.zip -o golang-gin-clean-arch.zip
+unzip golang-gin-clean-arch.zip -d .claude/skills/golang-gin-clean-arch/
 ```
 
 ---
@@ -79,14 +79,14 @@ This skill is standalone. It teaches clean architecture structure and patterns. 
 ## Directory Structure
 
 ```
-gin-clean-arch/
+golang-gin-clean-arch/
 ├── README.md
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── LICENSE
 │
 ├── skills/
-│   └── gin-clean-arch/
+│   └── golang-gin-clean-arch/
 │       ├── SKILL.md
 │       ├── metadata.json
 │       ├── README.md
@@ -102,7 +102,7 @@ gin-clean-arch/
 │           └── project-scaffolding.md
 │
 ├── skills/
-│   └── gin-clean-arch.zip
+│   └── golang-gin-clean-arch.zip
 │
 └── docs/
     └── SPECIFICATION.md

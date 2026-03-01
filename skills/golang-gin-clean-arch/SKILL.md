@@ -1,5 +1,5 @@
 ---
-name: gin-clean-arch
+name: golang-gin-clean-arch
 description: "Clean Architecture for Go Gin APIs. Covers layer separation (entity, usecase, repository, delivery), dependency injection, repository pattern, error handling, and testable project structure. Use when organizing Go/Gin projects, implementing clean/hexagonal architecture, setting up dependency injection, or structuring code for testability."
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: "1.0.0"
 ---
 
-# gin-clean-arch — Clean Architecture for Go/Gin
+# golang-gin-clean-arch — Clean Architecture for Go/Gin
 
 Build Go/Gin APIs with strict layer separation, dependency injection, and testable structure. Covers the 80% of clean architecture patterns you need daily. Works standalone; enhanced with **gin-best-practices** for Gin-specific patterns.
 

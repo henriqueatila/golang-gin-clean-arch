@@ -1,10 +1,10 @@
 # AGENTS.md
 
-Multi-agent guidance for the `gin-clean-arch` repository.
+Multi-agent guidance for the `golang-gin-clean-arch` repository.
 
 ## Repository Overview
 
-1 Agent Skill for Clean Architecture with Go/Gin, published on skills.sh. Skill lives under `skills/gin-clean-arch/`, build docs under `docs/`.
+1 Agent Skill for Clean Architecture with Go/Gin, published on skills.sh. Skill lives under `skills/golang-gin-clean-arch/`, build docs under `docs/`.
 
 ## Agent Roles
 
@@ -29,11 +29,11 @@ Multi-agent guidance for the `gin-clean-arch` repository.
 
 | Path | Owner |
 |------|-------|
-| `skills/gin-clean-arch/SKILL.md` | Skill Author |
-| `skills/gin-clean-arch/references/*.md` | Skill Author |
-| `skills/gin-clean-arch/metadata.json` | Packager |
-| `skills/gin-clean-arch/README.md` | Packager |
-| `skills/gin-clean-arch.zip` | Packager |
+| `skills/golang-gin-clean-arch/SKILL.md` | Skill Author |
+| `skills/golang-gin-clean-arch/references/*.md` | Skill Author |
+| `skills/golang-gin-clean-arch/metadata.json` | Packager |
+| `skills/golang-gin-clean-arch/README.md` | Packager |
+| `skills/golang-gin-clean-arch.zip` | Packager |
 | `docs/*` | Skill Author |
 | `README.md` | Packager |
 

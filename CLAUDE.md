@@ -1,17 +1,17 @@
 # CLAUDE.md
 
-Agent guidance for the `gin-clean-arch` repository.
+Agent guidance for the `golang-gin-clean-arch` repository.
 
 ## What This Repo Is
 
-A single Agent Skill for building Go/Gin APIs with Clean Architecture. Published on [skills.sh](https://skills.sh). The skill lives under `skills/gin-clean-arch/` and follows the [Agent Skills open standard](https://agentskills.io).
+A single Agent Skill for building Go/Gin APIs with Clean Architecture. Published on [skills.sh](https://skills.sh). The skill lives under `skills/golang-gin-clean-arch/` and follows the [Agent Skills open standard](https://agentskills.io).
 
 ## Repository Structure
 
 ```
-gin-clean-arch/
+golang-gin-clean-arch/
 ├── skills/
-│   └── gin-clean-arch/
+│   └── golang-gin-clean-arch/
 │       ├── SKILL.md              # Primary skill file (auto-loaded)
 │       ├── metadata.json
 │       ├── README.md

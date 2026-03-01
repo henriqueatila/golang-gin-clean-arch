@@ -1,6 +1,6 @@
 # SPECIFICATION.md
 
-Content requirements and quality checklist for the `gin-clean-arch` skill.
+Content requirements and quality checklist for the `golang-gin-clean-arch` skill.
 
 ## Shared Domain Model
 
