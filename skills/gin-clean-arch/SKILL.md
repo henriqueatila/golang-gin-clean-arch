@@ -19,35 +19,26 @@ Build Go/Gin APIs with strict layer separation, dependency injection, and testab
 
 ## 5 Golden Rules
 
-**These are non-negotiable. Every code generation must follow them.**
+**Non-negotiable. Every code generation must follow them.**
 
-1. **Gin is a detail — isolate it completely.** The package `github.com/gin-gonic/gin` and `*gin.Context` can ONLY exist in the outermost layer (`internal/delivery/http`). Entities and UseCases MUST NOT import Gin or know they are building a web API. If you swap Gin for Fiber, net/http, or a CLI, business logic requires zero changes.
-
-2. **The Database is a detail — don't pollute UseCases.** No SQL, GORM, SQLC, or database driver code inside Entities or UseCases. UseCases call only repository interfaces (e.g., `ProductRepository`). The concrete implementation with queries lives in `internal/repository/`.
-
-3. **Follow the Dependency Rule strictly.** Source code depends only on inner layers. Delivery calls UseCases. UseCases coordinate Entities. Entities know nothing about the outside world.
-
-4. **Separate Request/Response models from Domain models.** Never pass Gin request structs (with `json`/`binding` tags) or DB models to UseCases. The Controller receives the HTTP request, maps it to a plain DTO, and passes that DTO to the UseCase.
-
-5. **`main.go` is the only dirty component.** Dependency injection happens exclusively in `cmd/api/main.go`. It instantiates the DB, creates the concrete repository, injects it into the UseCase, injects the UseCase into the Gin Controller, and starts the server. It is the only file allowed to know the entire system.
+1. **Gin is a detail — isolate it.** `gin` and `*gin.Context` ONLY in `internal/delivery/http`. Swap Gin for Fiber/CLI — zero business logic changes.
+2. **Database is a detail.** No SQL/GORM/SQLC in Entities or UseCases. UseCases call repository interfaces only.
+3. **Dependency Rule.** Source depends inward only. Delivery→UseCases→Entities. Entities know nothing outside.
+4. **Separate Request/Response from Domain.** Never pass Gin request structs or DB models to UseCases. Map to plain DTOs.
+5. **`main.go` is the only dirty component.** DI wiring exclusively in `cmd/api/main.go` — the only file that knows the entire system.
 
 ## Project Structure
 
 ```
 myapp/
-├── cmd/
-│   └── api/
-│       └── main.go              # Entry point — DI wiring
+├── cmd/api/main.go                    # Entry point — DI wiring
 ├── internal/
-│   ├── domain/                  # Entities, interfaces, errors (innermost)
-│   ├── usecase/                 # Business logic (depends on domain only)
-│   ├── repository/              # Data access — SQLC or GORM (implements domain interfaces)
-│   └── delivery/
-│       └── http/                # Gin handlers + routes (outermost)
-├── pkg/
-│   └── httpserver/              # Reusable HTTP server wrapper
-├── config/                      # Configuration (YAML + env)
-├── migrations/                  # SQL migration files
+│   ├── domain/                        # Entities, interfaces, errors (innermost)
+│   ├── usecase/                       # Business logic (depends on domain only)
+│   ├── repository/                    # Data access — SQLC or GORM
+│   └── delivery/http/                 # Gin handlers + routes (outermost)
+├── config/                            # Configuration (env)
+├── migrations/                        # SQL migration files
 └── go.mod
 ```
 
@@ -489,12 +480,21 @@ Binding tags validate structure but **do not sanitize content**. Sanitize free-t
 - **[references/testing-by-layer.md](references/testing-by-layer.md)** — Mock-per-layer, testcontainers, table-driven tests, coverage
 - **[references/project-scaffolding.md](references/project-scaffolding.md)** — From-scratch setup, Makefile, configuration, graceful shutdown
 
+## Production Checklist
+
+This skill covers architecture and code-level security. For production deployment, combine with **gin-best-practices**:
+
+- [ ] Rate limiting + CORS middleware → **gin-api** (`references/middleware.md`)
+- [ ] JWT auth + RBAC → **gin-auth** (`references/jwt-patterns.md`)
+- [ ] Request ID + timeout middleware → **gin-api** (`references/middleware.md`)
+- [ ] Health check with DB ping → **gin-deploy** (`references/kubernetes.md`)
+- [ ] Multi-stage Dockerfile (distroless) → **gin-deploy** (`references/dockerfile.md`)
+- [ ] OpenTelemetry tracing → **gin-deploy**
+
 ## Cross-Skill References (gin-best-practices)
 
-Each skill from `henriqueatila/gin-best-practices` complements a specific layer:
-
-- **gin-api** → Delivery layer. `ShouldBind*` variants (query, header, form), custom validators, file uploads, route versioning, CORS/rate-limit middleware, `AppError` system. Load `references/routing.md` for pagination and wildcard routes, `references/middleware.md` for request ID and timeout middleware.
-- **gin-auth** → Delivery layer. JWT middleware for protected route groups, login handler, token refresh/blacklist (Redis), RBAC with `RequireRole`. Load `references/jwt-patterns.md` for RS256 vs HS256, `references/rbac.md` for multi-tenant permissions.
-- **gin-database** → Repository layer. GORM associations, hooks, soft deletes, sqlx struct scanning, `NamedExec`, migrations with golang-migrate. Load `references/gorm-patterns.md` for GORM CRUD, `references/migrations.md` for zero-downtime migrations.
-- **gin-testing** → All layers. `httptest.NewRecorder` patterns, table-driven handler tests, testcontainers for integration, e2e flows with docker-compose. Load `references/unit-tests.md` for mock generation, `references/e2e.md` for full CI pipeline tests.
-- **gin-deploy** → Infrastructure. Multi-stage Dockerfile (distroless), docker-compose with Air hot-reload, Kubernetes manifests (Deployment, HPA, Ingress), OpenTelemetry tracing. Load `references/dockerfile.md` for layer caching, `references/kubernetes.md` for Helm charts.
+- **gin-api** → Delivery: `ShouldBind*` variants, custom validators, file uploads, CORS/rate-limit, request ID middleware
+- **gin-auth** → Delivery: JWT middleware, token refresh/blacklist, RBAC with `RequireRole`
+- **gin-database** → Repository: GORM associations/hooks/soft-deletes, sqlx, golang-migrate
+- **gin-testing** → All layers: `httptest`, table-driven handler tests, testcontainers, e2e with docker-compose
+- **gin-deploy** → Infra: Dockerfile (distroless), docker-compose + Air, Kubernetes manifests, OpenTelemetry
