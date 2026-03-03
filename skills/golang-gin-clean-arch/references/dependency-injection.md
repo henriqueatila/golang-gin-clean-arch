@@ -29,14 +29,14 @@ Wire all dependencies by hand in `main.go`. No code generation, no reflection. E
 ```go
 // CORRECT — callers receive the domain interface; can be swapped for a mock
 func NewProductRepository(db *sql.DB) domain.ProductRepository {
-    return &postgresProductRepository{db: db}
+    return &postgresProductRepo{db: db}
 }
 func NewProductUsecase(repo domain.ProductRepository) domain.ProductUsecase {
     return &productUsecase{repo: repo}
 }
 
 // WRONG — concrete return type leaks the implementation; mocking breaks
-func NewProductRepository(db *sql.DB) *postgresProductRepository { ... }
+func NewProductRepository(db *sql.DB) *postgresProductRepo { ... }
 ```
 
 ### Bootstrap Order
@@ -161,17 +161,17 @@ func NewProductRepository(db *sql.DB) (domain.ProductRepository, error) {
     if db == nil {
         return nil, errors.New("product repository: db must not be nil")
     }
-    return &postgresProductRepository{db: db}, nil
+    return &postgresProductRepo{db: db}, nil
 }
 
 // 4. Lazy prepared statements — use for hot-path query caching only
-type postgresProductRepository struct {
+type postgresProductRepo struct {
     db   *sql.DB
     once sync.Once
     stmt *sql.Stmt
 }
 
-func (r *postgresProductRepository) prepareStatements(ctx context.Context) error {
+func (r *postgresProductRepo) prepareStatements(ctx context.Context) error {
     var prepErr error
     r.once.Do(func() {
         r.stmt, prepErr = r.db.PrepareContext(ctx,

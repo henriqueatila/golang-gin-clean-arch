@@ -134,6 +134,8 @@ type transferStockUsecase struct {
     warehouseRepo domain.WarehouseRepository
 }
 
+// In production: define a TransferStockUsecase interface in domain and return it.
+// Simplified here — returns concrete for brevity.
 func NewTransferStockUsecase(p domain.ProductRepository, w domain.WarehouseRepository) *transferStockUsecase {
     return &transferStockUsecase{productRepo: p, warehouseRepo: w}
 }
@@ -150,6 +152,8 @@ func (u *transferStockUsecase) Execute(ctx context.Context, src, dst uuid.UUID, 
     return u.warehouseRepo.RecordTransfer(ctx, src, dst, qty)
 }
 ```
+
+> **Production note:** This simplified example omits transactional coordination. In production, wrap multi-repo writes in a transaction using the `execTx` pattern from [repository-pattern.md](repository-pattern.md#4-transactions) to prevent partial updates.
 
 ---
 
@@ -181,13 +185,13 @@ import (
     "myapp/internal/domain"
 )
 
-type postgresProductRepository struct{ db *sql.DB }
+type postgresProductRepo struct{ db *sql.DB }
 
 func NewProductRepository(db *sql.DB) domain.ProductRepository {
-    return &postgresProductRepository{db: db}
+    return &postgresProductRepo{db: db}
 }
 
-func (r *postgresProductRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
+func (r *postgresProductRepo) FindByID(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
     var p domain.Product
     err := r.db.QueryRowContext(ctx,
         `SELECT id, name, description, price, stock, created_at, updated_at
@@ -219,8 +223,6 @@ Handlers are thin adapters: bind → call usecase → respond. Zero business log
 // internal/delivery/http/product_dto.go
 package http
 
-import "github.com/google/uuid"
-
 type createProductRequest struct {
     Name        string `json:"name"        binding:"required,min=2,max=200"`
     Description string `json:"description" binding:"max=1000"`
@@ -229,11 +231,12 @@ type createProductRequest struct {
 }
 
 type productResponse struct {
-    ID         uuid.UUID `json:"id"`
-    Name       string    `json:"name"`
-    PriceCents int64     `json:"price_cents"`
-    Stock      int32     `json:"stock"`
-    CreatedAt  string    `json:"created_at"`
+    ID          string `json:"id"`
+    Name        string `json:"name"`
+    Description string `json:"description"`
+    PriceCents  int64  `json:"price_cents"`
+    Stock       int32  `json:"stock"`
+    CreatedAt   string `json:"created_at"`
 }
 ```
 
@@ -260,8 +263,9 @@ func NewProductHandler(uc domain.ProductUsecase, logger *slog.Logger) *ProductHa
 
 func toProductResponse(p *domain.Product) productResponse {
     return productResponse{
-        ID: p.ID, Name: p.Name, PriceCents: p.Price,
-        Stock: p.Stock, CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+        ID: p.ID.String(), Name: p.Name, Description: p.Description,
+        PriceCents: p.Price, Stock: p.Stock,
+        CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z"),
     }
 }
 

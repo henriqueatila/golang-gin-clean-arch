@@ -89,7 +89,9 @@ func (r *sqlcProductRepo) FindByID(ctx context.Context, id uuid.UUID) (*domain.P
     p := toDomain(row); return &p, nil
 }
 func (r *sqlcProductRepo) FindAll(ctx context.Context, f domain.ProductFilter) ([]domain.Product, error) {
+    if f.Page <= 0 { f.Page = 1 }
     if f.Limit <= 0 { f.Limit = 20 }
+    if f.Limit > 100 { f.Limit = 100 }
     rows, err := r.q.ListProducts(ctx, sqlcgen.ListProductsParams{
         Limit: int32(f.Limit), Offset: int32((f.Page - 1) * f.Limit)})
     if err != nil { return nil, fmt.Errorf("list products: %w", err) }
@@ -170,6 +172,9 @@ func (r *gormProductRepo) Delete(ctx context.Context, id uuid.UUID) error {
     return nil
 }
 func (r *gormProductRepo) FindAll(ctx context.Context, f domain.ProductFilter) ([]domain.Product, error) {
+    if f.Page <= 0 { f.Page = 1 }
+    if f.Limit <= 0 { f.Limit = 20 }
+    if f.Limit > 100 { f.Limit = 100 }
     var ms []productModel
     err := r.db.WithContext(ctx).Limit(f.Limit).Offset((f.Page-1)*f.Limit).Find(&ms).Error
     if err != nil { return nil, fmt.Errorf("list products: %w", err) }
@@ -203,7 +208,7 @@ func execTx(ctx context.Context, db *sql.DB, fn func(*sqlcgen.Queries) error) er
     }
     return tx.Commit()
 }
-func TransferStock(ctx context.Context, db *sql.DB, fromID, toID string, qty int32) error {
+func TransferStock(ctx context.Context, db *sql.DB, fromID, toID uuid.UUID, qty int32) error {
     return execTx(ctx, db, func(q *sqlcgen.Queries) error {
         src, err := q.GetProductForUpdate(ctx, fromID)
         if err != nil { return fmt.Errorf("get source: %w", err) }
@@ -242,8 +247,14 @@ Tune `MaxOpenConns` to your DB plan's connection limit.
 
 **Dynamic filtering** — parameterised WHERE; never interpolate user strings:
 ```go
+// escapeLike escapes LIKE/ILIKE wildcards in user input to prevent pattern abuse.
+func escapeLike(s string) string {
+    r := strings.NewReplacer("%", "\\%", "_", "\\_")
+    return r.Replace(s)
+}
+
 clauses, args, n := []string{"1=1"}, []any{}, 1
-if f.Name != "" { clauses = append(clauses, fmt.Sprintf("name ILIKE $%d", n)); args = append(args, "%"+f.Name+"%"); n++ }
+if f.Name != "" { clauses = append(clauses, fmt.Sprintf("name ILIKE $%d", n)); args = append(args, "%"+escapeLike(f.Name)+"%"); n++ }
 if f.MinPrice > 0 { clauses = append(clauses, fmt.Sprintf("price >= $%d", n)); args = append(args, f.MinPrice); n++ }
 // append LIMIT $n OFFSET $n+1 last
 ```
@@ -287,6 +298,7 @@ func TestGetProduct_NotFound(t *testing.T) {
 func TestProductRepository_CreateAndFind(t *testing.T) {
     ctx := context.Background()
     pgc, err := postgres.RunContainer(ctx,
+        // test-only credentials — testcontainers creates an ephemeral DB
         postgres.WithDatabase("testdb"), postgres.WithUsername("test"), postgres.WithPassword("test"))
     require.NoError(t, err)
     t.Cleanup(func() { _ = pgc.Terminate(ctx) })

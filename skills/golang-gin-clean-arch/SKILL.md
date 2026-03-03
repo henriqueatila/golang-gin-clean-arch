@@ -4,7 +4,7 @@ description: "Clean Architecture for Go Gin APIs. Covers layer separation (entit
 license: MIT
 metadata:
   author: henriqueatila
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # golang-gin-clean-arch — Clean Architecture for Go/Gin
@@ -156,8 +156,8 @@ func (u *productUsecase) CreateProduct(ctx context.Context, input domain.CreateP
         Description: input.Description,
         Price:       input.Price,
         Stock:       input.Stock,
-        CreatedAt:   time.Now(),
-        UpdatedAt:   time.Now(),
+        CreatedAt:   time.Now().UTC(),
+        UpdatedAt:   time.Now().UTC(),
     }
 
     if err := u.repo.Create(ctx, product); err != nil {
@@ -334,6 +334,7 @@ package main
 import (
     "context"
     "database/sql"
+    "errors"
     "log/slog"
     "net/http"
     "os"
@@ -361,6 +362,9 @@ func main() {
     db.SetMaxOpenConns(25)
     db.SetMaxIdleConns(10)
     db.SetConnMaxLifetime(5 * time.Minute)
+    if err := db.PingContext(context.Background()); err != nil {
+        logger.Error("ping db", "error", err); os.Exit(1)
+    }
 
     // DI wiring: repo → usecase → handler
     productRepo := repository.NewProductRepository(db)
@@ -371,9 +375,10 @@ func main() {
     r.Use(gin.Recovery())
     delivery.RegisterProductRoutes(r.Group("/api/v1"), productHandler)
 
-    srv := &http.Server{Addr: cfg.Port, Handler: r}
+    srv := &http.Server{Addr: cfg.Port, Handler: r,
+        ReadTimeout: 10 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second}
     go func() {
-        if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+        if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
             logger.Error("server error", "error", err); os.Exit(1)
         }
     }()
@@ -421,6 +426,8 @@ var (
 )
 ```
 
+> **Pragmatic trade-off:** `Code` aligns with HTTP status codes for simplicity. In non-HTTP contexts (CLI, gRPC), map these codes in the respective delivery layer. For strict domain purity, replace with an `ErrorKind` enum — see [error-handling.md](references/error-handling.md).
+
 Error-to-HTTP mapping lives in the **delivery layer** (not domain — Gin is a detail):
 ```go
 // internal/delivery/http/errors.go — Gin allowed here (outermost layer)
@@ -430,7 +437,7 @@ func handleError(c *gin.Context, err error, logger *slog.Logger) {
     var appErr *domain.AppError
     if errors.As(err, &appErr) {
         resp := gin.H{"error": appErr.Message}
-        if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+        if appErr.Code < 500 && appErr.Detail != "" { resp["detail"] = appErr.Detail }
         c.JSON(appErr.Code, resp)
         return
     }

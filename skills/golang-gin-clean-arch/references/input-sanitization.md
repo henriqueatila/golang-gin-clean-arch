@@ -26,6 +26,8 @@ func SanitizeString(s string) string {
 }
 ```
 
+> **Note:** `SanitizeString` preserves `\n`, `\r`, `\t` for multi-line text fields. For values used in HTTP headers, strip all control characters: `strings.Map(func(r rune) rune { if r < 32 { return -1 }; return r }, s)`.
+
 Usage in handler:
 
 ```go

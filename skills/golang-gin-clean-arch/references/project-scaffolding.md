@@ -139,11 +139,33 @@ func (r *postgresProductRepo) Create(ctx context.Context, p *domain.Product) err
 ## Delivery Layer
 
 ```go
+// requestLogger logs method, path, status, and latency for each request.
+func requestLogger(logger *slog.Logger) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        start := time.Now()
+        c.Next()
+        logger.InfoContext(c.Request.Context(), "request",
+            "method", c.Request.Method,
+            "path", c.Request.URL.Path,
+            "status", c.Writer.Status(),
+            "latency", time.Since(start).String(),
+        )
+    }
+}
+```
+
+```go
 // internal/delivery/http/router.go
 func NewRouter(productUC domain.ProductUsecase, logger *slog.Logger) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery(), requestLogger(logger))
+	r.Use(func(c *gin.Context) {
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("X-Frame-Options", "DENY")
+		c.Next()
+	})
 	r.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	// CORS + rate limiting: see gin-api skill
 	RegisterProductRoutes(r.Group("/api/v1"), NewProductHandler(productUC, logger))
 	return r
 }
@@ -156,7 +178,7 @@ func handleError(c *gin.Context, err error, logger *slog.Logger) {
 	var appErr *domain.AppError
 	if errors.As(err, &appErr) {
 		resp := gin.H{"error": appErr.Message}
-		if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+		if appErr.Code < 500 && appErr.Detail != "" { resp["detail"] = appErr.Detail }
 		c.JSON(appErr.Code, resp)
 		return
 	}
@@ -241,6 +263,7 @@ func Load() (*Config, error) {
 
 ```dotenv
 SERVER_ADDR=:8080
+# Production: use sslmode=require or sslmode=verify-full
 DATABASE_URL=postgres://user:password@localhost:5432/myapp?sslmode=disable
 DB_MAX_OPEN_CONNS=25
 DB_MAX_IDLE_CONNS=10

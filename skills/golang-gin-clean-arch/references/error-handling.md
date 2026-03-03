@@ -164,6 +164,8 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, id uuid.UUID, input 
 
 ## 5. HTTP Error Mapping Middleware
 
+> **Alternative to `handleError` helper:** The middleware approach below is more scalable — handlers call `_ = c.Error(err)` and return. The `handleError` helper (see SKILL.md) is simpler for small apps. Choose one pattern per project; do not mix.
+
 Handlers call `c.Error(err)` and return. Middleware extracts `AppError` and writes JSON.
 
 ```go
@@ -186,7 +188,7 @@ func ErrorMiddleware(logger *slog.Logger) gin.HandlerFunc {
                 logger.WarnContext(c.Request.Context(), "client error", "status", appErr.Code, "error", err, "path", c.Request.URL.Path)
             }
             resp := gin.H{"error": appErr.Message}
-            if appErr.Detail != "" { resp["detail"] = appErr.Detail }
+            if appErr.Code < 500 && appErr.Detail != "" { resp["detail"] = appErr.Detail }
             c.JSON(appErr.Code, resp)
             return
         }
@@ -232,6 +234,8 @@ func (h *ProductHandler) Create(c *gin.Context) {
     c.JSON(http.StatusCreated, product)
 }
 
+// formatBindError extracts field-level validation details from binding errors.
+// Requires: "github.com/go-playground/validator/v10" and "strings"
 func formatBindError(err error) *domain.AppError {
     var ve validator.ValidationErrors
     if errors.As(err, &ve) {
@@ -268,6 +272,7 @@ package middleware
 import ("log/slog"; "net/http"; "github.com/gin-gonic/gin")
 
 func RecoveryMiddleware(logger *slog.Logger) gin.HandlerFunc {
+    // nil writer: suppress Gin's default stack trace output; custom slog logging below
     return gin.RecoveryWithWriter(nil, func(c *gin.Context, recovered any) {
         logger.ErrorContext(c.Request.Context(), "panic recovered",
             "panic", recovered, "path", c.Request.URL.Path)

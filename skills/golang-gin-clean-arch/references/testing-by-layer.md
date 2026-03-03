@@ -148,8 +148,8 @@ func TestCreateProductHandler(t *testing.T) {
 			},
 			wantStatus: http.StatusCreated,
 		},
-		{name: "bad JSON → 400", body: `{bad`,
-			setup: func(*mocks.ProductUsecase) {}, wantStatus: http.StatusBadRequest},
+		{name: "bad JSON → 422", body: `{bad`,
+			setup: func(*mocks.ProductUsecase) {}, wantStatus: http.StatusUnprocessableEntity},
 		{
 			name: "conflict → 409",
 			body: validBody,
