@@ -4,7 +4,7 @@ description: "Clean Architecture for Go Gin APIs. Covers layer separation (entit
 license: MIT
 metadata:
   author: henriqueatila
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # golang-gin-clean-arch — Clean Architecture for Go/Gin
