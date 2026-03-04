@@ -20,3 +20,4 @@ plans/
 # Agent memory/artifacts
 .claude/
 **/.claude/
+repomix-output.txt
