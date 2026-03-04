@@ -49,14 +49,17 @@ product, err := h.uc.CreateProduct(c.Request.Context(), domain.CreateProductInpu
 `SanitizeString` above strips ASCII control chars (0–31) but misses the DEL character (127) and Unicode control categories. For stricter sanitization:
 
 ```go
+import ("strings"; "unicode")
+
 // StrictSanitizeString strips all control characters including DEL (127)
 // and Unicode control categories (Cc, Cf), then trims whitespace.
+// Preserves \n, \r, \t for multi-line fields.
 func StrictSanitizeString(s string) string {
     return strings.Map(func(r rune) rune {
-        if r < 32 && r != '\n' && r != '\r' && r != '\t' {
-            return -1
+        if r == '\n' || r == '\r' || r == '\t' {
+            return r // preserve whitespace before unicode.IsControl check
         }
-        if r == 127 { // DEL character
+        if r < 32 || r == 127 {
             return -1
         }
         if unicode.IsControl(r) {
@@ -67,7 +70,7 @@ func StrictSanitizeString(s string) string {
 }
 ```
 
-> Import `"unicode"` when using `StrictSanitizeString`. Use this variant for fields displayed in admin panels or exported to CSV/PDF.
+> Use this variant for fields displayed in admin panels or exported to CSV/PDF.
 
 ### Post-Sanitization Length Validation
 
@@ -96,9 +99,11 @@ For values used in HTTP headers (e.g., correlation IDs, filenames in Content-Dis
 
 ```go
 // SanitizeHeader strips all control characters for safe use in HTTP headers.
+// Includes Unicode controls (e.g., NEL U+0085) — stricter than SanitizeString.
 func SanitizeHeader(s string) string {
     return strings.Map(func(r rune) rune {
         if r < 32 || r == 127 { return -1 }
+        if unicode.IsControl(r) { return -1 }
         return r
     }, strings.TrimSpace(s))
 }

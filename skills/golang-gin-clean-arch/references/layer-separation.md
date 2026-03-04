@@ -107,7 +107,7 @@ func (u *productUsecase) CreateProduct(ctx context.Context, input domain.CreateP
         CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC(),
     }
     if err := p.Validate(); err != nil {
-        return nil, fmt.Errorf("create product: %v: %w", err, domain.ErrValidation)
+        return nil, fmt.Errorf("create product: %w", err)
     }
     if err := u.repo.Create(ctx, p); err != nil {
         return nil, fmt.Errorf("create product: %w", err)
@@ -234,6 +234,7 @@ package http
 import (
     "log/slog"
     "net/http"
+    "time"
 
     "github.com/gin-gonic/gin"
     "myapp/internal/domain"
